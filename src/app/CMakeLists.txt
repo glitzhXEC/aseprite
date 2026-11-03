@@ -99,6 +99,20 @@ add_definitions(-DLIBARCHIVE_STATIC)
 
 add_library(app-lib ${generated_files})
 
+# Explicitly opt in to the unfinished in-process PixelLab integration.
+option(ENABLE_PIXELLAB_NATIVE "Build experimental native PixelLab client" OFF)
+target_sources(app-lib PRIVATE commands/cmd_pixellab_native.cpp)
+if(ENABLE_PIXELLAB_NATIVE)
+  add_subdirectory(pixellab)
+  set_source_files_properties(commands/cmd_pixellab_native.cpp PROPERTIES
+    INCLUDE_DIRECTORIES "${CMAKE_CURRENT_BINARY_DIR}/pixellab/deps")
+  target_compile_definitions(app-lib PRIVATE ENABLE_PIXELLAB_NATIVE)
+  if(PIXELLAB_FAKE_NETWORK_FOR_TESTS)
+    set_source_files_properties(commands/cmd_pixellab_native.cpp PROPERTIES COMPILE_DEFINITIONS PIXELLAB_FAKE_NETWORK_FOR_TESTS)
+  endif()
+  target_link_libraries(app-lib pixellab-native-client)
+endif()
+
 # These specific-platform files should be in an external library
 # (e.g. "base" or "os").
 if(WIN32)
