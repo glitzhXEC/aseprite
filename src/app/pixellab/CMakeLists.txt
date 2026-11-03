@@ -22,3 +22,16 @@ else()
   message(FATAL_ERROR "PixelLab native client is not ported to this platform")
 endif()
 target_include_directories(pixellab-native-client PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PIXELLAB_DEPS_DIR})
+
+# Builds a separate mock-only test library. It cannot make network requests.
+option(PIXELLAB_BUILD_OFFLINE_TESTS "Build synthetic PixelLab client test library" OFF)
+if(PIXELLAB_BUILD_OFFLINE_TESTS)
+  add_library(pixellab-mock-test SHARED
+    tests/mock_adapter.cpp
+    ${PIXELLAB_DEPS_DIR}/vendor/miniz/miniz.c
+    ${PIXELLAB_DEPS_DIR}/vendor/miniz/miniz_tdef.c
+    ${PIXELLAB_DEPS_DIR}/vendor/miniz/miniz_tinfl.c
+    ${PIXELLAB_DEPS_DIR}/vendor/miniz/miniz_zip.c)
+  target_compile_features(pixellab-mock-test PRIVATE cxx_std_17)
+  target_include_directories(pixellab-mock-test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PIXELLAB_DEPS_DIR})
+endif()

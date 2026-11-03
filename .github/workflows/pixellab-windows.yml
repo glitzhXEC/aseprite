@@ -1,0 +1,65 @@
+name: PixelLab Windows build and offline tests
+
+on:
+  push:
+    branches:
+      - pixellab-native-windows-wip
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 90
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - name: Set up Ninja
+        uses: aseprite/get-ninja@main
+      - name: Set up Python for test runner only
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test dependency
+        run: python -m pip install Pillow==11.3.0
+      - name: Download Windows Skia
+        shell: bash
+        run: |
+          set -euo pipefail
+          skia_url="$(bash laf/misc/skia-url.sh release windows x64)"
+          curl --fail --location --retry 3 -o skia.zip "$skia_url"
+          unzip -q skia.zip -d skia
+      - name: Configure Windows x64 native build
+        shell: bash
+        run: |
+          set -euo pipefail
+          skia_dir="$(cygpath -m "$PWD/skia")"
+          cmake -S . -B build -G Ninja \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DLAF_BACKEND=skia \
+            -DSKIA_DIR="$skia_dir" \
+            -DSKIA_LIBRARY_DIR="$skia_dir/out/Release-x64" \
+            -DSKIA_LIBRARY="$skia_dir/out/Release-x64/skia.lib" \
+            -DENABLE_PIXELLAB_NATIVE=ON \
+            -DPIXELLAB_BUILD_OFFLINE_TESTS=ON
+      - name: Build Aseprite and the mock test library
+        run: cmake --build build --target aseprite pixellab-mock-test --parallel 2
+      - name: Run offline client tests with synthetic data
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not (Test-Path 'build/bin/aseprite.exe')) { throw 'Aseprite build missing' }
+          $env:PIXELLAB_MOCK_LIBRARY = (Resolve-Path 'build/bin/pixellab-mock-test.dll').Path
+          python src/app/pixellab/tests/test_core.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:PIXELLAB_MOCK_DIRECT = '1'
+          python src/app/pixellab/tests/test_core.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

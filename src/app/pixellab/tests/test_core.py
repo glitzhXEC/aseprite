@@ -13,7 +13,7 @@ with tempfile.TemporaryDirectory() as d:
     name=f'anim/{direction}/{i}.png';img=Image.new('RGBA',(8,8),(i*40,20,30,255));out=io.BytesIO();img.save(out,'PNG');z.writestr(name,out.getvalue());f['animations']['Walking'][direction].append(name)
   z.writestr('metadata.json',json.dumps({'states':[{'character':{'id':id},'frames':f}]}))
  os.environ['PIXELLAB_FIXTURE']=path;os.environ['PIXELLAB_CAPTURE']=capture
- lib=ctypes.CDLL(str(Path(__file__).resolve().parent/'libmock.so'));lib.make_client.restype=ctypes.c_void_p;lib.run_job.argtypes=[ctypes.c_void_p,ctypes.c_char_p];lib.run_job.restype=ctypes.c_char_p;lib.free_client.argtypes=[ctypes.c_void_p];c=lib.make_client()
+ lib=ctypes.CDLL(os.environ.get('PIXELLAB_MOCK_LIBRARY',str(Path(__file__).resolve().parent/'libmock.so')));lib.make_client.restype=ctypes.c_void_p;lib.run_job.argtypes=[ctypes.c_void_p,ctypes.c_char_p];lib.run_job.restype=ctypes.c_char_p;lib.free_client.argtypes=[ctypes.c_void_p];c=lib.make_client()
  def call(act,**kw):
   r=json.loads(lib.run_job(c,json.dumps(dict(action=act,**kw)).encode()));assert r['ok'],(act,r);return r
  try:

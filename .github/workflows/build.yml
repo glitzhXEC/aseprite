@@ -2,6 +2,7 @@ name: build
 on: [push, pull_request]
 jobs:
   build:
+    if: ${{ github.event_name != 'push' || github.ref != 'refs/heads/pixellab-native-windows-wip' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:

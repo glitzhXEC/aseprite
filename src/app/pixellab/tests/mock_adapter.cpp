@@ -14,6 +14,11 @@ static Reply request(const std::string&,const std::string& url,const std::map<st
  if(url.find("/mcp")!=std::string::npos){auto req=parsebytes(body);if(text(req,"method")=="initialize")return {200,{{"mcp-session-id","test"}},strbytes("{\"result\":{}}")};if(text(req,"method")=="notifications/initialized")return {202,{}, {}};auto args=member(member(req,"params"),"arguments");std::ofstream o(std::getenv("PIXELLAB_CAPTURE"),std::ios::app);o<<args.dump()<<"\n";return response({{"result",{{"content",json::array()}}}});}
  throw std::runtime_error("Unexpected synthetic request");
 }
-extern "C" void* make_client(){return new app::pixellab::Client();}
-extern "C" void free_client(void* p){delete static_cast<app::pixellab::Client*>(p);}
-extern "C" const char* run_job(void* p,const char* msg){static thread_local std::string r;r=static_cast<app::pixellab::Client*>(p)->run(msg);return r.c_str();}
+#ifdef _WIN32
+#define PIXELLAB_TEST_EXPORT __declspec(dllexport)
+#else
+#define PIXELLAB_TEST_EXPORT
+#endif
+extern "C" PIXELLAB_TEST_EXPORT void* make_client(){return new app::pixellab::Client();}
+extern "C" PIXELLAB_TEST_EXPORT void free_client(void* p){delete static_cast<app::pixellab::Client*>(p);}
+extern "C" PIXELLAB_TEST_EXPORT const char* run_job(void* p,const char* msg){static thread_local std::string r;r=static_cast<app::pixellab::Client*>(p)->run(msg);return r.c_str();}
