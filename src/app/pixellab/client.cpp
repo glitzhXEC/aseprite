@@ -30,6 +30,9 @@
 #include <vector>
 #if defined(_WIN32) && !defined(PIXELLAB_TEST_MOCK)
 #define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <windows.h>
 #include <shellapi.h>
 #include <winhttp.h>
