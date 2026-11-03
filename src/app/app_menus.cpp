@@ -354,6 +354,18 @@ void AppMenus::reload()
 
   LOG("MENU: Main menu loaded.\n");
 
+#ifdef ENABLE_PIXELLAB_NATIVE
+  // Development-only commands; keep the default menu unchanged when disabled.
+  if (auto* fileItem = dynamic_cast<MenuItem*>(m_rootMenu->findItemById("file_menu"))) {
+    if (auto* fileMenu = fileItem->getSubmenu()) {
+      fileMenu->insertChild(2, new AppMenuItem("PixelLab Native (Development)...",
+                                               "PixelLabNative"));
+      fileMenu->insertChild(3, new AppMenuItem("Save to PixelLab (Development)...",
+                                               "PixelLabNativeSave"));
+    }
+  }
+#endif
+
   m_tabPopupMenu.reset(loadMenuById(handle, "tab_popup_menu"));
   m_documentTabPopupMenu.reset(loadMenuById(handle, "document_tab_popup_menu"));
   m_layerPopupMenu.reset(loadMenuById(handle, "layer_popup_menu"));
