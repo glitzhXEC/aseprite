@@ -3,7 +3,8 @@
 **Not production-ready.** The feature is built into Aseprite, not a Lua
 extension or a helper process. The development menu is under File. It can
 list/search synthetic or PixelLab characters, open rotations and animations,
-and has an experimental save command. Animated previews are not implemented.
+and has an experimental save command. The experimental panel shows rotation and
+animation previews, with animation lists loaded automatically.
 Do not use the save command on irreplaceable assets. The implementation has
 been validated on Linux with real PixelLab reads and one rotation write;
 it has not been tested on Windows.
@@ -35,7 +36,8 @@ ninja -C build aseprite
 Follow Aseprite's `INSTALL.md` for the compiler and dependencies. This code is
 based on fork main `3669f4774d181d77deb3e6db95fe6df8ca347410`, not the
 v1.3.18.6 tag. Building the library requires libcurl on Linux and Windows uses WinHTTP.
-The Windows application has not yet been built or run in a Windows environment.
+The Windows application built successfully in GitHub Actions; the UI and live
+PixelLab connection have not yet been tested on Windows.
 There is no Python runtime dependency. Initial CMake configuration requires network
 access to download pinned dependencies; each download is verified against SHA-256.
 
@@ -66,8 +68,13 @@ access to download pinned dependencies; each download is verified against SHA-25
   PixelLab before editing. Saving an animation opened through the heuristic
   is blocked until a reliable mapping is implemented.
 * Skeleton references from PixelLab are hidden by default and must remain
-  hidden during save. Paid estimation, image preview, persistent snapshots,
-  secure credentials and complete UI tests are not implemented.
+  hidden during save. Paid estimation is optional and asks for confirmation
+  before opening; it may cost 0.1 generation per missing frame.
+* The panel is modal and closes when an asset opens. Reopen it to use its save
+  button, or use the File menu save command. Disconnect, in-app key entry,
+  secure credentials, persistent snapshots and safe UI undo are not implemented.
+  The animation preview uses a fixed 100ms per frame; All directions previews
+  the first available direction. Preview and UI require further testing.
 
 ## Synthetic-only test build
 
